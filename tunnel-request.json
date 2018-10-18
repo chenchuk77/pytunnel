@@ -1,0 +1,7 @@
+{
+  "my_ssh_ip":     "dynamic",
+  "my_ssh_port":   "2211",
+  "my_ssh_user":   "chen",
+  "your_app_port": "4000",
+  "my_app_port":   "4004"
+}
