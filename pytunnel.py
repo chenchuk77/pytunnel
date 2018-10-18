@@ -9,7 +9,8 @@ import subprocess
 import traceback
 from urllib2 import urlopen
 
-version = '1.03'
+version = '1.04'
+polling_interval = 60
 
 sqs = boto3.client('sqs',
                    aws_access_key_id     = os.environ['AWS_ACCESS_KEY_ID'],
@@ -82,8 +83,9 @@ else:
     else:
         mode = 'request'
 
-########################## request mode ###########################
+########################## request mode (client) ###########################
 if mode == 'request':
+    log ('pytunnel client version {}, sending tunnel request.'.format(version))
 
     data = read_properties('./tunnel-request.json')
     # auto injecting the public ip if value is 'dynamic'
@@ -91,10 +93,11 @@ if mode == 'request':
         data['my_ssh_ip'] = urlopen('http://ip.42.pl/raw').read()
 
     send_message(data)
+    print ('request sent, check local port {}'.format(data['my_app_port']))
 
-########################## daemon mode ###########################
+########################## daemon mode (server) ###########################
 if mode == 'daemon':
-    log ('pytunnel version {}, entering main loop.'.format(version))
+    log ('pytunnel server version {}, entering main loop.'.format(version))
     while True:
         # get message
         response = sqs.receive_message(
@@ -128,5 +131,5 @@ if mode == 'daemon':
 
         else:
             log('no messages in sqs')
-        time.sleep(60)
+        time.sleep(polling_interval)
 
