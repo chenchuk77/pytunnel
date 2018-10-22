@@ -8,9 +8,9 @@ import os
 import subprocess
 import traceback
 from urllib2 import urlopen
+from random import randint
 
 version = '1.04'
-polling_interval = 60
 
 sqs = boto3.client('sqs',
                    aws_access_key_id     = os.environ['AWS_ACCESS_KEY_ID'],
@@ -21,9 +21,16 @@ queue_url = os.environ['QUEUE_URL']
 
 def show_usage():
     print ('pytunnel version {}'.format(version))
-    print ('usage:')
-    print ('./pytunnel.py --daemon')
+    print ('')
+    print ('usage for server side:')
+    print ('./pytunnel.py --daemon server1')
+    print ('./pytunnel.py --daemon server2')
+    print ('./pytunnel.py --d server3')
+    print ('./pytunnel.py --d server4')
+    print ('')
+    print ('usage for client side:')
     print ('./pytunnel.py --request')
+    print ('./pytunnel.py --r')
 
 def read_properties(filename):
     with open(filename) as json_data:
@@ -32,6 +39,10 @@ def read_properties(filename):
 
 def log(msg):
     print ('{} - {}'.format(time.strftime("%x %H:%M:%S"), msg))
+
+def random_seconds():
+    # randomize to ensure that each server will poll on a different time
+    return randint(0, 30) + 30
 
 def delete_message():
     sqs.delete_message(QueueUrl=queue_url, ReceiptHandle=receipt_handle)
@@ -70,8 +81,9 @@ def create_ssh_reverse_tunnel(tunnel_properties):
 # - request mode: fires a json request once to sqs queue and exit
 # - daemon mode: listens forever for a new requests from sqs queue
 #
+tag = ''
 mode = ''
-if len(sys.argv) != 2:
+if len(sys.argv) < 2 or len(sys.argv) > 3:
     show_usage()
     sys.exit(1)
 if sys.argv[1] not in ['--daemon', '--request', '--d', '--r']:
@@ -80,8 +92,17 @@ if sys.argv[1] not in ['--daemon', '--request', '--d', '--r']:
 else:
     if sys.argv[1] in ['--daemon', '--d']:
         mode = 'daemon'
+        if len(sys.argv) != 3:
+            show_usage()
+            sys.exit(1)
+        else:
+            tag = sys.argv[2]
+            if not tag:
+                show_usage()
+                sys.exit(1)
     else:
         mode = 'request'
+
 
 ########################## request mode (client) ###########################
 if mode == 'request':
@@ -118,18 +139,23 @@ if mode == 'daemon':
 
             # decoding json
             try:
+                # just check if its a json
                 body = json.loads(message['Body'])
-                log('handling new tunnel request.')
-                create_ssh_reverse_tunnel(body)
-                log('tunnel created.')
             # if not json content
             except ValueError:
                 log('ignoring, non json content')
                 log(body)
 
-            delete_message()
+            body = json.loads(message['Body'])
+            if body['tag'] == tag:
+                log('handling new tunnel request for tag {}.'.format(tag))
+                create_ssh_reverse_tunnel(body)
+                log('tunnel created.')
+                delete_message()
+            else:
+                log('unknown tag {}, cancelling and leaving the message on queue for other server.'.format(body['tag']))
 
         else:
             log('no messages in sqs')
-        time.sleep(polling_interval)
+        time.sleep(random_seconds())
 
