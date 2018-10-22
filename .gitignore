@@ -1,1 +1,4 @@
 config
+.idea
+stderr.txt
+stdout.txt
