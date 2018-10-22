@@ -75,15 +75,6 @@ def check_port(port):
         else:
             return False
 
-# client function
-def kill_tunnels(username):
-    # will kill reverse tunnels on client (that was created from server)
-    # it uses a shell pattern to recognize the pid to kill
-    find_pid_command = "ps -ef | grep 'sshd: chenchuk' | grep -Ev 'grep|root' | awk \"{ print $2 }\"".format(username)
-    log(find_pid_command)
-    client_pid = os.system(find_pid_command)
-    os.system("kill -9 {}".format(client_pid))
-
 # server function to create tunnel on remote client
 def create_ssh_reverse_tunnel(tunnel_properties):
     my_ssh_user   = tunnel_properties['my_ssh_user']
