@@ -35,15 +35,16 @@ def show_usage():
     print ('')
     print ('usage for server side:')
     print ('./pytunnel.py --daemon server1')
-    print ('./pytunnel.py --daemon server2')
-    print ('./pytunnel.py --d server3')
-    print ('./pytunnel.py --d server4')
+    print ('./pytunnel.py --d server2')
     print ('')
     print ('usage for client side:')
-    print ('./pytunnel.py --request')
-    print ('./pytunnel.py --r')
+    print ('./pytunnel.py --request server1')
+    print ('./pytunnel.py --r server1')
 
 def read_properties(filename):
+    if not os.path.isfile(filename):
+        log('cannot open {}, file not found.'.format(filename))
+        sys.exit(1)
     with open(filename) as json_data:
         data = json.load(json_data)
     return data
@@ -99,36 +100,33 @@ def create_ssh_reverse_tunnel(tunnel_properties):
 #
 tag = ''
 mode = ''
-if len(sys.argv) < 2 or len(sys.argv) > 3:
+if len(sys.argv) != 3:
     show_usage()
     sys.exit(1)
 if sys.argv[1] not in commands:
     show_usage()
     sys.exit(1)
+tag = sys.argv[2]
+if not tag:
+    show_usage()
+    sys.exit(1)
+if sys.argv[1] in daemon:
+    mode = 'daemon'
+elif sys.argv[1] in request:
+    mode = 'request'
 else:
-    if sys.argv[1] in daemon:
-        mode = 'daemon'
-        if len(sys.argv) != 3:
-            show_usage()
-            sys.exit(1)
-        else:
-            tag = sys.argv[2]
-            if not tag:
-                show_usage()
-                sys.exit(1)
-    elif sys.argv[1] in request:
-        mode = 'request'
-    else:
-        show_usage()
-        sys.exit(1)
+    show_usage()
+    sys.exit(1)
 
 
 
 ########################## request mode (client) ###########################
 if mode == 'request':
-    log('pytunnel client version {}, sending tunnel request.'.format(version))
+    filename = './{}.json'.format(tag)
+    log('pytunnel client version {}'.format(version))
+    log('sending tunnel request using {}.'.format(filename))
 
-    data = read_properties('./tunnel-request.json')
+    data = read_properties(filename)
     # auto injecting the public ip if value is 'dynamic'
     if data['my_ssh_ip'] == 'dynamic':
         data['my_ssh_ip'] = urlopen('http://ip.42.pl/raw').read()
