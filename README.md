@@ -48,4 +48,7 @@ source config and request a tunnel
 $ . config
 $ ./pytunnel.py --r chen-work.json
 ```
+***
+### TODO:
+1. change server side --d to accept chen-dev39.json and not pnly chen-dev39 (then bash completion helps.)
 
