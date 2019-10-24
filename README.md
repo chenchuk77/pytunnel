@@ -4,15 +4,24 @@ This utility is used to connet to a remote server behind a firewall using revers
 
 The client (publicly accessible) will send a request for tunnel creation to an SQS queue (since it cant access the server directly)
 
-The server listens forever to SQS queue and creates a reverse tunnel upon request
+The server listens forever to SQS queue and creates a reverse tunnel upon request. 
+when a request arives, the server creates a reverse SSH tunnel to the client and will map one of
+its TCP ports to the client machine.
+
+The client can then connect to that port using localhost:port
+
+### System components
+![](pytunnel.png)
+
 
 ### Prerequisites:
-The server can access the client (ie. it can authenticate using ssh keys)
-    
-    $ ssh user@client_ip
+The server can access the client (ie. it can authenticate using ssh keys).
+```
+$ ssh user@client_ip
+```
 
 #### Server side:
-set environment variables by edit config file
+set environment variables by edit config file. Those vars used by the server to fetch messages from a shared queue
     
     export AWS_ACCESS_KEY_ID=XXX
     export AWS_SECRET_ACCESS_KEY=XXX
@@ -31,6 +40,6 @@ edit the tunnel-request.json
 source config and request a tunnel
     
     $ . config
-    $ ./pytunnel.py --r   
+    $ ./pytunnel.py --r chen-work.json
 
 
