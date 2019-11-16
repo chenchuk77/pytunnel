@@ -2,3 +2,6 @@ config
 .idea
 stderr.txt
 stdout.txt
+chen*
+ssh-chen*
+
