@@ -1,4 +1,5 @@
 config
+env
 .idea
 stderr.txt
 stdout.txt
