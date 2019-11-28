@@ -1,0 +1,22 @@
+#
+# This is a unit file to auto start the server side.
+# copy to /etc/systemd/system/pytunnel.service
+# sudo systemctl daemon-reload
+# sudo systemctl start pytunnel.service
+
+[Unit]
+Description=Pytunnel
+Documentation=https://github.com/chenchuk77/pytunnel
+Requires=network.target remote-fs.target
+
+[Service]
+Type=simple
+User=chenchuk
+Group=chenchuk
+EnvironmentFile=/home/chenchuk/dev/pytunnel/env
+WorkingDirectory=/home/chenchuk/dev/pytunnel
+ExecStart=/home/chenchuk/dev/pytunnel/pytunnel.py --d chen-work47
+ExecStop=/usr/bin/pkill -f pytunnel
+
+[Install]
+WantedBy=multi-user.target
