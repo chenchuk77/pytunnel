@@ -12,7 +12,7 @@ from urllib2 import urlopen
 from random import randint
 from contextlib import closing
 
-version = '1.10'
+version = '1.20'
 port_check_interval = 10
 
 # aws sqs parameters
@@ -86,11 +86,11 @@ def create_ssh_reverse_tunnel(tunnel_properties):
     log('processing tunnel request: for {} at {}:{}'.format(my_ssh_user, my_ssh_ip, my_ssh_port))
     try:
         with open("./stdout.txt","wb") as out, open("./stderr.txt","wb") as err:
-            # example command : ssh -N -R 2210:localhost:22 bhome.dyndns.com
+            # example command : ssh -N -R 0.0.0.0:2210:localhost:22 bhome.dyndns.com
             subprocess.Popen(['ssh', '-oStrictHostKeyChecking=no',
-                                     '-p', my_ssh_port,
-                                     '-N', '-R', '{}:localhost:{}'.format(my_app_port, your_app_port),
-                                     '{}@{}'.format(my_ssh_user, my_ssh_ip)])
+                              '-p', my_ssh_port,
+                              '-N', '-R', '0.0.0.0:{}:localhost:{}'.format(my_app_port, your_app_port),
+                              '{}@{}'.format(my_ssh_user, my_ssh_ip)])
     except:
         log('error creating ssh tunnel.')
 
