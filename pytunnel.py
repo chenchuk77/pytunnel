@@ -12,7 +12,7 @@ from urllib2 import urlopen
 from random import randint
 from contextlib import closing
 
-version = '1.20'
+version = '1.22'
 port_check_interval = 10
 
 # aws sqs parameters
@@ -34,12 +34,12 @@ def show_usage():
     print ('pytunnel version {}'.format(version))
     print ('')
     print ('usage for server side:')
-    print ('./pytunnel.py --daemon server1')
-    print ('./pytunnel.py --d server2')
+    print ('./pytunnel.py --daemon chen-dev39')
+    print ('./pytunnel.py --d chen-dev39')
     print ('')
     print ('usage for client side:')
-    print ('./pytunnel.py --request server1')
-    print ('./pytunnel.py --r server1')
+    print ('./pytunnel.py --request chen-dev39.json')
+    print ('./pytunnel.py --r chen-dev39.json')
 
 def read_properties(filename):
     if not os.path.isfile(filename):
@@ -122,7 +122,9 @@ else:
 
 ########################## request mode (client) ###########################
 if mode == 'request':
-    filename = './{}.json'.format(tag)
+    filename = './{}'.format(tag)
+    if not 'json' in filename:
+        filename += '.json'
     log('pytunnel client version {}'.format(version))
     log('sending tunnel request using {}.'.format(filename))
 
