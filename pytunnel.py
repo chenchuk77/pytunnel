@@ -6,13 +6,14 @@ import sys
 import time
 import socket
 import os
+import re
 import subprocess
 import traceback
 from urllib2 import urlopen
 from random import randint
 from contextlib import closing
 
-version = '1.22'
+version = '1.30'
 port_check_interval = 10
 
 # aws sqs parameters
@@ -76,6 +77,20 @@ def check_port(port):
         else:
             return False
 
+def find_my_public_ip():
+    my_ip_web_reply = urlopen('http://ifconfig.io').read()
+    ip = re.findall( r'[0-9]+(?:\.[0-9]+){3}', my_ip_web_reply )
+    if ip:
+        log('requesting tunnel to ip:{} using http://ifconfig.io'.format(ip[0]))
+        return ip[0]
+    my_ip_web_reply = urlopen('http://ip.42.pl/raw').read()
+    ip = re.findall( r'[0-9]+(?:\.[0-9]+){3}', my_ip_web_reply )
+    if ip:
+        log('requesting tunnel to ip:{} using http://ip.42.pl/raw '.format(ip[0]))
+        return ip[0]
+    log('cannot retrieve my own public ip. exiting client ...')
+    sys.exit(1)
+
 # server function to create tunnel on remote client
 def create_ssh_reverse_tunnel(tunnel_properties):
     my_ssh_user   = tunnel_properties['my_ssh_user']
@@ -131,7 +146,7 @@ if mode == 'request':
     data = read_properties(filename)
     # auto injecting the public ip if value is 'dynamic'
     if data['my_ssh_ip'] == 'dynamic':
-        data['my_ssh_ip'] = urlopen('http://ip.42.pl/raw').read()
+        data['my_ssh_ip'] = find_my_public_ip()
 
     send_message(data)
     log('request sent for tunnel tag {}, check local port {}'.format(data['my_app_port'], data['tag']))
